@@ -11,6 +11,8 @@ jobs:
   build-apk:
     name: Build Flutter APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -48,5 +50,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: achieve-release-apk
-          path: build/app/outputs/flutter-apk/*.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
+      - name: Publish Direct APK to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0
+          name: "Achieve v1.0.0 Production Release"
+          body: "Official Android APK release for Achieve personal goal tracking app."
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
