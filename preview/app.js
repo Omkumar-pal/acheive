@@ -493,7 +493,7 @@ function openGoalDetail(goalId) {
   switchScreen('screenGoalDetail');
 }
 
-// Sheet Modals
+// Global Modal and Navigation Controllers
 function openCreateGoalSheet() {
   document.getElementById('sheetOverlay').classList.add('active');
   document.getElementById('createGoalSheet').classList.add('active');
@@ -518,6 +518,65 @@ function openAddStepModal(milestoneId) {
   document.getElementById('addStepSheet').classList.add('active');
 }
 
+function setAuthMode(mode) {
+  const tabAuthLogin = document.getElementById('tabAuthLogin');
+  const tabAuthRegister = document.getElementById('tabAuthRegister');
+  const groupAuthName = document.getElementById('groupAuthName');
+  const btnSubmitAuth = document.getElementById('btnSubmitAuth');
+
+  if (mode === 'login') {
+    if (tabAuthLogin) { tabAuthLogin.className = 'pill-btn primary'; tabAuthLogin.style.border = 'none'; }
+    if (tabAuthRegister) { tabAuthRegister.className = 'pill-btn secondary'; tabAuthRegister.style.border = 'none'; }
+    if (groupAuthName) groupAuthName.style.display = 'none';
+    if (btnSubmitAuth) btnSubmitAuth.textContent = 'Sign In';
+  } else {
+    if (tabAuthRegister) { tabAuthRegister.className = 'pill-btn primary'; tabAuthRegister.style.border = 'none'; }
+    if (tabAuthLogin) { tabAuthLogin.className = 'pill-btn secondary'; tabAuthLogin.style.border = 'none'; }
+    if (groupAuthName) groupAuthName.style.display = 'block';
+    if (btnSubmitAuth) btnSubmitAuth.textContent = 'Create Account';
+  }
+}
+
+function loginUser(name, email, isDemo) {
+  state.currentUser = { name, email, isDemo };
+  if (isDemo) {
+    state.goals = JSON.parse(JSON.stringify(SAMPLE_GOALS));
+    state.streak = 14;
+  } else {
+    state.goals = [];
+    state.streak = 0;
+  }
+  const nav = document.querySelector('.frosted-bottom-nav');
+  if (nav) nav.style.display = 'flex';
+  switchScreen('screenToday');
+  renderDashboard();
+}
+
+function logoutUser() {
+  state.currentUser = null;
+  closeSheets();
+  const nav = document.querySelector('.frosted-bottom-nav');
+  if (nav) nav.style.display = 'none';
+  switchScreen('screenAuth');
+}
+
+function submitAuthForm() {
+  const email = document.getElementById('inputAuthEmail')?.value.trim() || 'user@achieve.app';
+  const name = document.getElementById('inputAuthName')?.value.trim() || email.split('@')[0];
+  const isDemo = email.toLowerCase().includes('alex') || email.toLowerCase().includes('demo');
+  loginUser(name, email, isDemo);
+}
+
+// Attach globally
+window.openCreateGoalSheet = openCreateGoalSheet;
+window.openProfileSheet = openProfileSheet;
+window.closeSheets = closeSheets;
+window.openAddStepModal = openAddStepModal;
+window.setAuthMode = setAuthMode;
+window.loginUser = loginUser;
+window.logoutUser = logoutUser;
+window.submitAuthForm = submitAuthForm;
+
 // Event Listeners Initializer
 document.addEventListener('DOMContentLoaded', () => {
   // Navigation tabs
@@ -541,66 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnOpenProfile = document.getElementById('btnOpenProfile');
   if (btnOpenProfile) btnOpenProfile.addEventListener('click', openProfileSheet);
 
-  // Auth Screen logic & Logout
-  let authMode = 'login';
-  const tabAuthLogin = document.getElementById('tabAuthLogin');
-  const tabAuthRegister = document.getElementById('tabAuthRegister');
-  const groupAuthName = document.getElementById('groupAuthName');
   const btnSubmitAuth = document.getElementById('btnSubmitAuth');
-
-  if (tabAuthLogin && tabAuthRegister) {
-    tabAuthLogin.addEventListener('click', () => {
-      authMode = 'login';
-      tabAuthLogin.className = 'pill-btn primary';
-      tabAuthLogin.style.border = 'none';
-      tabAuthRegister.className = 'pill-btn secondary';
-      tabAuthRegister.style.border = 'none';
-      if (groupAuthName) groupAuthName.style.display = 'none';
-      if (btnSubmitAuth) btnSubmitAuth.textContent = 'Sign In';
-    });
-
-    tabAuthRegister.addEventListener('click', () => {
-      authMode = 'register';
-      tabAuthRegister.className = 'pill-btn primary';
-      tabAuthRegister.style.border = 'none';
-      tabAuthLogin.className = 'pill-btn secondary';
-      tabAuthLogin.style.border = 'none';
-      if (groupAuthName) groupAuthName.style.display = 'block';
-      if (btnSubmitAuth) btnSubmitAuth.textContent = 'Create Account';
-    });
-  }
-
-  function loginUser(name, email, isDemo) {
-    state.currentUser = { name, email, isDemo };
-    if (isDemo) {
-      state.goals = JSON.parse(JSON.stringify(SAMPLE_GOALS));
-      state.streak = 14;
-    } else {
-      state.goals = [];
-      state.streak = 0;
-    }
-    const nav = document.querySelector('.app-bottom-nav');
-    if (nav) nav.style.display = 'flex';
-    switchScreen('screenToday');
-    renderDashboard();
-  }
-
-  function logoutUser() {
-    state.currentUser = null;
-    closeSheets();
-    const nav = document.querySelector('.app-bottom-nav');
-    if (nav) nav.style.display = 'none';
-    switchScreen('screenAuth');
-  }
-
-  if (btnSubmitAuth) {
-    btnSubmitAuth.addEventListener('click', () => {
-      const email = document.getElementById('inputAuthEmail').value.trim() || 'user@achieve.app';
-      const name = document.getElementById('inputAuthName')?.value.trim() || email.split('@')[0];
-      const isDemo = email.toLowerCase().includes('alex') || email.toLowerCase().includes('demo');
-      loginUser(name, email, isDemo);
-    });
-  }
+  if (btnSubmitAuth) btnSubmitAuth.addEventListener('click', submitAuthForm);
 
   const btnAuthQuickDemo = document.getElementById('btnAuthQuickDemo');
   if (btnAuthQuickDemo) {
