@@ -40,7 +40,10 @@
                 <span class="micro-caption" id="todayDateStr">MONDAY, OCT 14</span>
                 <h1 class="hero-title">Today</h1>
               </div>
-              <button class="pill-btn primary" id="btnOpenCreateGoal">+ Goal</button>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="pill-btn secondary" id="btnOpenProfile" style="padding: 6px 12px; font-size: 13px; font-weight: 600;">👤 Profile</button>
+                <button class="pill-btn primary" id="btnOpenCreateGoal">+ Goal</button>
+              </div>
             </header>
 
             <!-- Momentum Scorecard -->
@@ -349,14 +352,37 @@
         <button class="pill-btn primary" id="btnSubmitNewGoal" style="width: 100%; padding: 14px; margin-top: 12px;">Create Goal & Routine</button>
       </div>
 
-      <!-- MODAL: ADD STEP -->
-      <div class="bottom-sheet" id="addStepSheet">
+      <!-- MODAL: PROFILE & LOGOUT -->
+      <div class="bottom-sheet" id="profileSheet">
         <div class="sheet-handle"></div>
-        <h2 class="hero-title" style="font-size: 22px; margin-bottom: 4px;">Add Action Step</h2>
-        <p class="card-subtext" style="margin-bottom: 16px;">Define a concrete action for this milestone.</p>
-        <input type="text" id="inputStepTitle" class="apple-input" placeholder="e.g. Practice 15 mins speaking" style="margin-bottom: 12px;">
-        <input type="number" id="inputStepDuration" class="apple-input" placeholder="Duration (min)" value="30" style="margin-bottom: 16px;">
-        <button class="pill-btn primary" id="btnSubmitAddStep" style="width: 100%; padding: 12px;">Add Step</button>
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #0066CC, #5AC8FA); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 12px; box-shadow: 0 4px 14px rgba(0,102,204,0.25);">
+            AR
+          </div>
+          <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 2px;">Alex Rivera</h2>
+          <div style="font-size: 13px; color: var(--text-muted);">alex@achieve.app • <span style="color: var(--primary); font-weight: 600;">Personal Plan</span></div>
+        </div>
+
+        <div class="apple-card" style="padding: 14px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-around; text-align: center;">
+            <div>
+              <div style="font-size: 16px; font-weight: 700;">🎯 3</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Active Goals</div>
+            </div>
+            <div style="width: 1px; height: 30px; background: var(--border);"></div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700;">🔥 14d</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Streak</div>
+            </div>
+            <div style="width: 1px; height: 30px; background: var(--border);"></div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700;">⚡ 88%</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Consistency</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="pill-btn secondary" id="btnLogoutUser" style="width: 100%; padding: 14px; color: #FF3B30; border-color: rgba(255, 59, 48, 0.25);">Log Out</button>
       </div>
     </div>
   </div>

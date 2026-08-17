@@ -496,10 +496,17 @@ function openCreateGoalSheet() {
   document.getElementById('createGoalSheet').classList.add('active');
 }
 
+function openProfileSheet() {
+  document.getElementById('sheetOverlay').classList.add('active');
+  document.getElementById('profileSheet').classList.add('active');
+}
+
 function closeSheets() {
   document.getElementById('sheetOverlay').classList.remove('active');
   document.getElementById('createGoalSheet').classList.remove('active');
   document.getElementById('addStepSheet').classList.remove('active');
+  const prof = document.getElementById('profileSheet');
+  if (prof) prof.classList.remove('active');
 }
 
 function openAddStepModal(milestoneId) {
@@ -526,8 +533,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderDashboard();
   });
 
-  // Open Create Goal
+  // Open Create Goal & Profile
   document.getElementById('btnOpenCreateGoal').addEventListener('click', openCreateGoalSheet);
+  const btnOpenProfile = document.getElementById('btnOpenProfile');
+  if (btnOpenProfile) btnOpenProfile.addEventListener('click', openProfileSheet);
+  
+  const btnLogoutUser = document.getElementById('btnLogoutUser');
+  if (btnLogoutUser) {
+    btnLogoutUser.addEventListener('click', () => {
+      alert('Logged out successfully! Starting fresh.');
+      state.goals = [];
+      state.streak = 0;
+      closeSheets();
+      renderDashboard();
+    });
+  }
   document.getElementById('sheetOverlay').addEventListener('click', closeSheets);
 
   // Category choice chips in modal

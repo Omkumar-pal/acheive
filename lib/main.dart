@@ -16,6 +16,7 @@ import 'ui/features/dashboard/view_models/dashboard_view_model.dart';
 import 'ui/features/dashboard/views/dashboard_view.dart';
 import 'ui/features/goal_detail/view_models/goal_detail_view_model.dart';
 import 'ui/features/goal_detail/views/goal_detail_view.dart';
+import 'ui/features/profile/views/profile_sheet.dart';
 import 'ui/features/reflection/view_models/reflection_view_model.dart';
 import 'ui/features/reflection/views/reflection_view.dart';
 
@@ -131,6 +132,18 @@ class _AppRootNavigationState extends State<AppRootNavigation> {
     );
   }
 
+  void _openProfileSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ProfileSheet(
+        authViewModel: widget.authViewModel,
+        dashboardViewModel: _dashboardViewModel,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_selectedGoalId != null) {
@@ -158,6 +171,7 @@ class _AppRootNavigationState extends State<AppRootNavigation> {
               setState(() => _selectedGoalId = goal.id);
             },
             onNewGoalTap: _openCreateGoalSheet,
+            onProfileTap: _openProfileSheet,
           ),
           ReflectionView(
             viewModel: _reflectionViewModel,
