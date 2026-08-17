@@ -36,11 +36,18 @@ class AchieveApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authRepo = AuthRepository();
+    final goalRepo = GoalRepository();
+    final reflRepo = ReflectionRepository();
+
     return MultiProvider(
       providers: [
-        Provider<IAuthRepository>(create: (_) => AuthRepository()),
-        Provider<IGoalRepository>(create: (_) => GoalRepository()),
-        Provider<IReflectionRepository>(create: (_) => ReflectionRepository()),
+        Provider<IAuthRepository>.value(value: authRepo),
+        Provider<IGoalRepository>.value(value: goalRepo),
+        Provider<IReflectionRepository>.value(value: reflRepo),
+        ChangeNotifierProvider<AuthViewModel>(
+          create: (_) => AuthViewModel(authRepository: authRepo),
+        ),
       ],
       child: MaterialApp(
         title: 'Achieve',
@@ -52,34 +59,16 @@ class AchieveApp extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatefulWidget {
+class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
   @override
-  State<AuthGate> createState() => _AuthGateState();
-}
-
-class _AuthGateState extends State<AuthGate> {
-  late AuthViewModel _authViewModel;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final authRepo = Provider.of<IAuthRepository>(context, listen: false);
-    _authViewModel = AuthViewModel(authRepository: authRepo);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _authViewModel,
-      builder: (context, _) {
-        if (!_authViewModel.isAuthenticated) {
-          return LoginView(viewModel: _authViewModel);
-        }
-        return AppRootNavigation(authViewModel: _authViewModel);
-      },
-    );
+    final authViewModel = context.watch<AuthViewModel>();
+    if (!authViewModel.isAuthenticated) {
+      return LoginView(viewModel: authViewModel);
+    }
+    return AppRootNavigation(authViewModel: authViewModel);
   }
 }
 
