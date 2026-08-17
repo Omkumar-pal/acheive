@@ -30,7 +30,8 @@ class GoalDetailViewModel extends ChangeNotifier {
 
     try {
       _goal = await _repository.getGoalById(goalId);
-      _consistencyDays = await _repository.getConsistencyHistory();
+      // Fetch consistency strictly for this goal
+      _consistencyDays = await _repository.getGoalConsistencyHistory(goalId);
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -104,6 +104,10 @@ class _AppRootNavigationState extends State<AppRootNavigation> {
     final goalRepo = Provider.of<IGoalRepository>(context, listen: false);
     final reflRepo = Provider.of<IReflectionRepository>(context, listen: false);
 
+    final currentUserId = widget.authViewModel.currentUser?.id ?? 'demo-user';
+    final isDemo = widget.authViewModel.currentUser?.isGuest ?? (currentUserId == 'demo-user');
+    goalRepo.setActiveUser(currentUserId, isDemo: isDemo);
+
     _dashboardViewModel = DashboardViewModel(repository: goalRepo);
     _reflectionViewModel = ReflectionViewModel(
       reflectionRepository: reflRepo,

@@ -125,16 +125,31 @@ let state = {
 };
 
 // Generate 28-day consistency history
-function generateHeatmapData() {
+function generateHeatmapData(goal) {
   const days = [];
+  const isDemoGoal = goal && (goal.id === 'goal-1' || goal.id === 'goal-2' || goal.id === 'goal-3');
+  
   for (let i = 27; i >= 0; i--) {
     let level = 0;
-    if (i % 7 === 3 || i % 7 === 5) {
-      level = 1;
-    } else if (i % 4 === 0) {
-      level = 3;
+    if (isDemoGoal) {
+      if (goal.id === 'goal-1') {
+        // Spanish cadence (Mon, Tue, Thu, Sat)
+        level = (i % 7 === 1 || i % 7 === 2 || i % 7 === 4 || i % 7 === 6) ? (i % 2 === 0 ? 2 : 1) : 0;
+      } else if (goal.id === 'goal-2') {
+        // Marathon cadence (Mon, Wed, Fri, Sun)
+        level = (i % 7 === 1 || i % 7 === 3 || i % 7 === 5 || i % 7 === 0) ? (i % 3 === 0 ? 3 : 2) : 0;
+      } else {
+        level = (i % 7 === 2 || i % 7 === 4) ? 1 : 0;
+      }
     } else {
-      level = 2;
+      // New goals start with a clean 0 calendar, with today marked if actions completed
+      if (i === 0 && goal) {
+        let hasCompleted = false;
+        goal.milestones.forEach(m => m.actions.forEach(a => { if (a.completed) hasCompleted = true; }));
+        level = hasCompleted ? 2 : 0;
+      } else {
+        level = 0;
+      }
     }
     days.push(level);
   }
@@ -175,10 +190,8 @@ function getGoalProgress(goal) {
 // Render Dashboard
 function renderDashboard() {
   const allActions = getTodayActions();
-  // Filter for today's subset (first 4)
-  const todayActions = allActions.slice(0, 4);
-  const completedToday = todayActions.filter(a => a.completed).length;
-  const totalToday = todayActions.length;
+  const completedToday = allActions.filter(a => a.completed).length;
+  const totalToday = allActions.length;
   const pct = totalToday === 0 ? 0 : Math.round((completedToday / totalToday) * 100);
 
   // Update ring
@@ -195,54 +208,99 @@ function renderDashboard() {
 
   // Render Active Goals Carousel
   const carousel = document.getElementById('goalsCarousel');
-  carousel.innerHTML = state.goals.map(goal => {
-    const progress = getGoalProgress(goal);
-    let totalActions = 0;
-    let completedActions = 0;
-    goal.milestones.forEach(m => {
-      m.actions.forEach(a => {
-        totalActions++;
-        if (a.completed) completedActions++;
+  if (state.goals.length === 0) {
+    carousel.innerHTML = '<div style="padding: 20px; color: var(--text-muted); font-size: 13px;">No active goals yet. Tap "+ Goal" to create one.</div>';
+  } else {
+    carousel.innerHTML = state.goals.map(goal => {
+      const progress = getGoalProgress(goal);
+      let totalActions = 0;
+      let completedActions = 0;
+      goal.milestones.forEach(m => {
+        m.actions.forEach(a => {
+          totalActions++;
+          if (a.completed) completedActions++;
+        });
       });
-    });
 
-    return `
-      <div class="goal-card-carousel" data-goal-id="${goal.id}">
-        <div class="goal-card-top">
-          <div class="goal-emoji-icon">${goal.emoji}</div>
-          <div class="status-badge ${goal.status}">${goal.statusText}</div>
-        </div>
-        <div class="goal-card-title">${goal.title}</div>
-        <div>
-          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">
-            <span>${completedActions}/${totalActions} actions</span>
-            <span style="font-weight: 600; color: var(--primary);">${progress}%</span>
+      return `
+        <div class="goal-card-carousel" data-goal-id="${goal.id}">
+          <div class="goal-card-top">
+            <div class="goal-emoji-icon">${goal.emoji}</div>
+            <div class="status-badge ${goal.status}">${goal.statusText}</div>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill" style="width: ${progress}%;"></div>
+          <div class="goal-card-title">${goal.title}</div>
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">
+              <span>${completedActions}/${totalActions} actions</span>
+              <span style="font-weight: 600; color: var(--primary);">${progress}%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: ${progress}%;"></div>
+            </div>
           </div>
         </div>
+      `;
+    }).join('');
+  }
+
+  // Render Today Actions Grouped by Goal (Issue 4 Fix)
+  const actionsList = document.getElementById('todayActionsList');
+  if (state.goals.length === 0 || allActions.length === 0) {
+    actionsList.innerHTML = `
+      <div class="apple-card" style="text-align: center; padding: 24px;">
+        <div style="font-size: 32px; margin-bottom: 8px;">🎯</div>
+        <div style="font-weight: 600; margin-bottom: 4px;">No action plans today</div>
+        <div style="font-size: 12px; color: var(--text-muted);">Create a goal to start building your daily execution rhythm.</div>
       </div>
     `;
-  }).join('');
+  } else {
+    // Group by goal
+    actionsList.innerHTML = state.goals.map(goal => {
+      let goalActions = [];
+      goal.milestones.forEach(m => {
+        m.actions.forEach(a => {
+          goalActions.push({ ...a, milestoneId: m.id, goalId: goal.id });
+        });
+      });
 
-  // Render Today Actions
-  const actionsList = document.getElementById('todayActionsList');
-  actionsList.innerHTML = todayActions.map(action => `
-    <div class="action-card ${action.completed ? 'completed' : ''}" data-goal-id="${action.goalId}" data-milestone-id="${action.milestoneId}" data-action-id="${action.id}">
-      <div class="checkbox-circle"></div>
-      <div class="action-details">
-        <div class="action-title">${action.title}</div>
-        <div class="action-meta">
-          <span>${action.goalEmoji}</span>
-          <span>${action.goalTitle}</span>
-          <span>•</span>
-          <span>${action.minutes}m</span>
+      if (goalActions.length === 0) return '';
+      const goalDone = goalActions.filter(a => a.completed).length;
+      const goalPct = Math.round((goalDone / goalActions.length) * 100);
+
+      return `
+        <div class="apple-card" style="padding: 14px; margin-bottom: 12px;">
+          <div class="goal-group-header" data-goal-toggle="${goal.id}" style="cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">${goal.emoji}</span>
+                <span style="font-weight: 700; font-size: 14px;">${goal.title}</span>
+              </div>
+              <span style="font-size: 11px; font-weight: 600; color: ${goalDone === goalActions.length ? 'var(--status-on-track)' : 'var(--primary)'}; background: rgba(0,102,204,0.08); padding: 3px 8px; border-radius: 20px;">
+                ${goalDone}/${goalActions.length} today (${goalPct}%)
+              </span>
+            </div>
+            <div class="progress-track" style="margin-bottom: 8px; height: 4px;">
+              <div class="progress-fill" style="width: ${goalPct}%; background: ${goalDone === goalActions.length ? 'var(--status-on-track)' : 'var(--primary)'}"></div>
+            </div>
+          </div>
+          <div class="goal-group-actions" id="group-actions-${goal.id}">
+            ${goalActions.map(action => `
+              <div class="action-card ${action.completed ? 'completed' : ''}" style="margin-top: 6px; padding: 10px 12px;" data-goal-id="${goal.id}" data-milestone-id="${action.milestoneId}" data-action-id="${action.id}">
+                <div class="checkbox-circle" style="width: 20px; height: 20px;"></div>
+                <div class="action-details">
+                  <div class="action-title" style="font-size: 13px;">${action.title}</div>
+                  <div class="action-meta">
+                    <span>${action.minutes || 30}m</span>
+                  </div>
+                </div>
+                <div class="time-pill" style="font-size: 10px;">${action.time || goal.routine.time}</div>
+              </div>
+            `).join('')}
+          </div>
         </div>
-      </div>
-      <div class="time-pill">${action.time}</div>
-    </div>
-  `).join('');
+      `;
+    }).join('');
+  }
 
   // Add click events to carousel items
   carousel.querySelectorAll('.goal-card-carousel').forEach(card => {
@@ -287,8 +345,8 @@ function renderGoalDetail(goalId) {
   document.getElementById('detailRoutineDays').textContent = goal.routine.days;
   document.getElementById('detailRoutineTime').textContent = goal.routine.time;
 
-  // Heatmap
-  const heatmapData = generateHeatmapData();
+  // Heatmap strictly for this goal (Issue 2 Fix)
+  const heatmapData = generateHeatmapData(goal);
   const heatmapGrid = document.getElementById('heatmapGrid');
   heatmapGrid.innerHTML = heatmapData.map(val => `<div class="heatmap-cell c${val}">${val > 0 ? val : ''}</div>`).join('');
 
@@ -488,6 +546,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Preferred time chips (Issue 3 Fix)
+  document.querySelectorAll('#preferredTimeChips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#preferredTimeChips .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // Session duration chips (Issue 3 Fix)
+  document.querySelectorAll('#durationChips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#durationChips .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
   // Submit New Goal
   document.getElementById('btnSubmitNewGoal').addEventListener('click', () => {
     const title = document.getElementById('inputGoalTitle').value.trim();
@@ -497,6 +571,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeCat = document.querySelector('#categoryChips .chip.active');
     const category = activeCat ? activeCat.getAttribute('data-cat') : 'personal';
     const emoji = activeCat ? activeCat.getAttribute('data-emoji') : '🎯';
+    
+    const activeTimeChip = document.querySelector('#preferredTimeChips .chip.active');
+    const prefTime = activeTimeChip ? activeTimeChip.getAttribute('data-time') : '07:30 AM';
+    
+    const activeDurChip = document.querySelector('#durationChips .chip.active');
+    const prefDur = activeDurChip ? parseInt(activeDurChip.getAttribute('data-dur'), 10) : 30;
+
     const mTitle = document.getElementById('inputMilestoneTitle').value.trim() || 'Foundational Milestone 1';
     const aTitle = document.getElementById('inputActionTitle').value.trim() || 'First actionable step';
 
@@ -512,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
       routine: {
         frequency: '3x / week',
         days: 'Mon, Wed, Fri',
-        time: '08:00 AM (45 min)'
+        time: `${prefTime} (${prefDur} min)`
       },
       milestones: [
         {
@@ -520,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title: mTitle,
           isCompleted: false,
           actions: [
-            { id: `act-${Date.now()}`, title: aTitle, minutes: 30, time: '08:00 AM', completed: false }
+            { id: `act-${Date.now()}`, title: aTitle, minutes: prefDur, time: prefTime, completed: false }
           ]
         }
       ]

@@ -189,7 +189,7 @@ class GoalDetailView extends StatelessWidget {
                     // Add Milestone Button
                     Center(
                       child: ApplePillButton(
-                        text: '+ Add Milestone',
+                        text: 'Add Milestone',
                         icon: Icons.add_circle_outline,
                         isSecondary: true,
                         onPressed: () => _showAddMilestoneDialog(context),

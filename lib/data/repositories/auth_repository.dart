@@ -18,26 +18,30 @@ class AuthRepository implements IAuthRepository {
 
   @override
   Future<User> login(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 300));
+    final isDemo = email.toLowerCase().contains('alex') || email.toLowerCase().contains('demo');
+    final userId = isDemo ? 'demo-user' : 'usr-${DateTime.now().millisecondsSinceEpoch}';
+
     _currentUser = User(
-      id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
-      name: email.split('@').first.replaceFirst(
-          email[0], email[0].toUpperCase()),
+      id: userId,
+      name: isDemo ? 'Alex Rivera' : email.split('@').first,
       email: email,
-      token: 'jwt_mock_token_${DateTime.now().millisecondsSinceEpoch}',
-      isGuest: false,
+      token: 'jwt_token_${DateTime.now().millisecondsSinceEpoch}',
+      isGuest: isDemo,
     );
     return _currentUser!;
   }
 
   @override
   Future<User> register(String name, String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 450));
+    await Future.delayed(const Duration(milliseconds: 350));
+    final userId = 'usr-${DateTime.now().millisecondsSinceEpoch}';
+
     _currentUser = User(
-      id: 'usr-${DateTime.now().millisecondsSinceEpoch}',
+      id: userId,
       name: name,
       email: email,
-      token: 'jwt_mock_token_${DateTime.now().millisecondsSinceEpoch}',
+      token: 'jwt_token_${DateTime.now().millisecondsSinceEpoch}',
       isGuest: false,
     );
     return _currentUser!;
@@ -45,7 +49,12 @@ class AuthRepository implements IAuthRepository {
 
   @override
   Future<User> continueAsGuest() async {
-    _currentUser = User.guest();
+    _currentUser = User(
+      id: 'demo-user',
+      name: 'Guest User',
+      email: 'guest@achieve.app',
+      isGuest: true,
+    );
     return _currentUser!;
   }
 

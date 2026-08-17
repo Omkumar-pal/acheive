@@ -29,7 +29,8 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
   GoalCategory _selectedCategory = GoalCategory.personal;
   String _selectedEmoji = '🎯';
   int _targetMonths = 6;
-  int _sessionsPerWeek = 3;
+  int _targetDuration = 30;
+  String _selectedPreferredTime = '08:00 AM';
   final List<int> _selectedDays = [1, 3, 5]; // Mon, Wed, Fri
 
   final List<Map<String, dynamic>> _categories = [
@@ -41,6 +42,15 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
     {'cat': GoalCategory.relationships, 'name': 'Relationships', 'emoji': '🤝'},
     {'cat': GoalCategory.productivity, 'name': 'Productivity', 'emoji': '⚡'},
   ];
+
+  final List<Map<String, String>> _timeSlots = [
+    {'label': 'Morning', 'time': '07:30 AM', 'emoji': '🌅'},
+    {'label': 'Midday', 'time': '01:00 PM', 'emoji': '☀️'},
+    {'label': 'Evening', 'time': '07:00 PM', 'emoji': '🌆'},
+    {'label': 'Night', 'time': '09:30 PM', 'emoji': '🌙'},
+  ];
+
+  final List<int> _durations = [15, 30, 45, 60];
 
   @override
   void dispose() {
@@ -76,9 +86,10 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
       startDate: now,
       targetDate: targetDate,
       routine: Routine(
-        preferredDays: _selectedDays,
-        targetSessionsPerWeek: _sessionsPerWeek,
-        targetDurationMinutes: 45,
+        preferredDays: _selectedDays.isEmpty ? [1, 3, 5] : _selectedDays,
+        targetSessionsPerWeek: _selectedDays.isEmpty ? 3 : _selectedDays.length,
+        preferredTime: _selectedPreferredTime,
+        targetDurationMinutes: _targetDuration,
       ),
       milestones: [
         Milestone(
@@ -92,8 +103,8 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
               milestoneId: milestoneId,
               goalId: goalId,
               title: initialActionTitle,
-              estimatedMinutes: 30,
-              preferredTime: '08:00 AM',
+              estimatedMinutes: _targetDuration,
+              preferredTime: _selectedPreferredTime,
               status: ActionStatus.upcoming,
               dueDate: now,
             ),
@@ -138,7 +149,7 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
             const Text('Create New Goal', style: AppTypography.displayMd),
             const SizedBox(height: 4),
             Text(
-              'Set a clear direction and build your routine.',
+              'Set a clear direction and build your daily routine.',
               style: AppTypography.caption.copyWith(color: AppColors.textMuted),
             ),
             const SizedBox(height: 20),
@@ -165,7 +176,7 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
               maxLines: 2,
               decoration: InputDecoration(
                 labelText: 'Why does this goal matter to you?',
-                hintText: 'e.g. To converse effortlessly during my trip and connect with people...',
+                hintText: 'e.g. To converse effortlessly during travel and connect deeply...',
                 filled: true,
                 fillColor: AppColors.canvasParchment,
                 border: OutlineInputBorder(
@@ -236,7 +247,7 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
             ),
             const SizedBox(height: 18),
 
-            // Routine Schedule Days
+            // Preferred Routine Days
             const Text('Preferred Routine Days', style: AppTypography.captionStrong),
             const SizedBox(height: 8),
             Row(
@@ -280,13 +291,71 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
             ),
             const SizedBox(height: 18),
 
+            // Preferred Time Slot (Issue 3 Fix)
+            const Text('Preferred Time of Day', style: AppTypography.captionStrong),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _timeSlots.map((slot) {
+                final isSelected = _selectedPreferredTime == slot['time'];
+                return ChoiceChip(
+                  label: Text('${slot['emoji']} ${slot['label']} (${slot['time']})'),
+                  selected: isSelected,
+                  selectedColor: AppColors.primary.withOpacity(0.15),
+                  backgroundColor: AppColors.canvasParchment,
+                  side: BorderSide(
+                    color: isSelected ? AppColors.primary : AppColors.hairline,
+                  ),
+                  labelStyle: TextStyle(
+                    color: isSelected ? AppColors.primary : AppColors.ink,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    fontSize: 13,
+                  ),
+                  onSelected: (val) {
+                    setState(() => _selectedPreferredTime = slot['time']!);
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 18),
+
+            // Target Session Duration
+            const Text('Target Session Duration', style: AppTypography.captionStrong),
+            const SizedBox(height: 8),
+            Row(
+              children: _durations.map((dur) {
+                final isSelected = _targetDuration == dur;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ChoiceChip(
+                    label: Text('$dur min'),
+                    selected: isSelected,
+                    selectedColor: AppColors.primary.withOpacity(0.15),
+                    backgroundColor: AppColors.canvasParchment,
+                    side: BorderSide(
+                      color: isSelected ? AppColors.primary : AppColors.hairline,
+                    ),
+                    labelStyle: TextStyle(
+                      color: isSelected ? AppColors.primary : AppColors.ink,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                    onSelected: (_) {
+                      setState(() => _targetDuration = dur);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 18),
+
             // First Milestone & Action
-            const Text('Initial Milestone & Action', style: AppTypography.captionStrong),
+            const Text('Initial Milestone & Action Plan', style: AppTypography.captionStrong),
             const SizedBox(height: 8),
             TextField(
               controller: _milestoneController,
               decoration: InputDecoration(
-                labelText: 'First Milestone (e.g. Stage 1)',
+                labelText: 'First Milestone',
                 hintText: 'e.g. Master core 300 words',
                 filled: true,
                 fillColor: AppColors.canvasParchment,
@@ -301,7 +370,7 @@ class _CreateGoalSheetState extends State<CreateGoalSheet> {
               controller: _actionController,
               decoration: InputDecoration(
                 labelText: 'First Actionable Step',
-                hintText: 'e.g. Complete 20 mins of listening',
+                hintText: 'e.g. Complete 20 mins of vocabulary review',
                 filled: true,
                 fillColor: AppColors.canvasParchment,
                 border: OutlineInputBorder(

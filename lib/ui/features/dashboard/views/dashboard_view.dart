@@ -69,7 +69,7 @@ class DashboardView extends StatelessWidget {
                             ],
                           ),
                           ApplePillButton(
-                            text: '+ Goal',
+                            text: 'Goal',
                             icon: Icons.add,
                             onPressed: onNewGoalTap,
                             padding: const EdgeInsets.symmetric(
@@ -98,9 +98,11 @@ class DashboardView extends StatelessWidget {
                       // Today's Scheduled Actions
                       TodayActionsList(
                         actions: viewModel.todayActions,
+                        goals: viewModel.goals,
                         onToggleAction: viewModel.toggleAction,
                         getGoalTitle: viewModel.getGoalTitle,
                         getGoalEmoji: viewModel.getGoalEmoji,
+                        onNewGoalTap: onNewGoalTap,
                       ),
                     ],
                   ),
