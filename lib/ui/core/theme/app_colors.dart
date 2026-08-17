@@ -12,6 +12,7 @@ class AppColors {
   // Canvas & Surfaces
   static const Color canvas = Color(0xFFFFFFFF); // Pure White
   static const Color canvasParchment = Color(0xFFF5F5F7); // Signature Apple Parchment
+  static const Color surfaceCard = Color(0xFFFFFFFF);
   static const Color surfacePearl = Color(0xFFFAFAFC);
   static const Color surfaceTileDark = Color(0xFF1D1D1F); // Apple Ink Near-Black
   static const Color surfaceTileDark2 = Color(0xFF272729);
