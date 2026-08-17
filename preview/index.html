@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Achieve — Personal Goal Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="device-wrapper">
+    <div class="mobile-frame">
+      <!-- iOS Status Bar -->
+      <div class="status-bar">
+        <span class="status-time" id="statusTime">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-icons">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+            <path d="M1 8h2v3H1V8zm4-3h2v6H5V5zm4-3h2v9H9V2zm4-2h2v11h-2V0z"/>
+          </svg>
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
+            <path d="M7.5 2.5C9.6 2.5 11.5 3.4 12.8 4.8L14.2 3.4C12.5 1.7 10.1 0.5 7.5 0.5C4.9 0.5 2.5 1.7 0.8 3.4L2.2 4.8C3.5 3.4 5.4 2.5 7.5 2.5z"/>
+          </svg>
+          <div class="battery-icon">
+            <div class="battery-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App Screen Content -->
+      <div class="app-viewport">
+        <!-- SCREEN 1: TODAY'S FOCUS DASHBOARD -->
+        <section id="screenToday" class="app-screen active-screen">
+          <div class="screen-scroll-content">
+            <!-- Header -->
+            <header class="app-header">
+              <div>
+                <span class="micro-caption" id="todayDateStr">MONDAY, OCT 14</span>
+                <h1 class="hero-title">Today</h1>
+              </div>
+              <button class="pill-btn primary" id="btnOpenCreateGoal">+ Goal</button>
+            </header>
+
+            <!-- Momentum Scorecard -->
+            <div class="apple-card momentum-card">
+              <div class="ring-container">
+                <svg class="progress-ring" width="92" height="92" viewBox="0 0 92 92">
+                  <circle class="ring-bg" cx="46" cy="46" r="38"></circle>
+                  <circle class="ring-fg" id="dailyRingFg" cx="46" cy="46" r="38" stroke-dasharray="238.76" stroke-dashoffset="60"></circle>
+                </svg>
+                <div class="ring-text">
+                  <span class="ring-percent" id="dailyPercent">75%</span>
+                  <span class="ring-label" id="dailyFraction">3/4 Done</span>
+                </div>
+              </div>
+              <div class="momentum-details">
+                <div class="streak-badge">
+                  <span>🔥</span>
+                  <span id="streakCount">14 Day Streak</span>
+                </div>
+                <h3 class="card-title">Daily Momentum</h3>
+                <p class="card-subtext" id="momentumSubtext">3 of 4 actions completed. Consistent execution builds long-term mastery.</p>
+              </div>
+            </div>
+
+            <!-- Active Goals Carousel -->
+            <div class="section-block">
+              <div class="section-header">
+                <h2 class="section-title">Active Goals</h2>
+                <span class="section-counter" id="activeGoalsCount">3 in progress</span>
+              </div>
+              <div class="goals-carousel" id="goalsCarousel">
+                <!-- Injected via app.js -->
+              </div>
+            </div>
+
+            <!-- Today's Scheduled Actions -->
+            <div class="section-block">
+              <div class="section-header">
+                <h2 class="section-title">Today's Focus</h2>
+                <span class="section-counter" id="todayCompletedFraction">3/4 completed</span>
+              </div>
+              <div class="actions-list" id="todayActionsList">
+                <!-- Injected via app.js -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 2: GOAL DETAIL & MILESTONE JOURNEY -->
+        <section id="screenGoalDetail" class="app-screen">
+          <div class="screen-scroll-content">
+            <!-- Nav Bar -->
+            <div class="detail-nav-bar">
+              <button class="icon-back-btn" id="btnBackToDashboard">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <span class="micro-caption" id="detailCategory">LEARNING</span>
+              <div style="width: 24px;"></div>
+            </div>
+
+            <!-- Hero Goal Card -->
+            <div class="apple-card goal-hero-card">
+              <div class="goal-hero-top">
+                <div class="goal-emoji-icon" id="detailEmoji">🇪🇸</div>
+                <div class="status-badge" id="detailStatusBadge">● On Track</div>
+              </div>
+              <h1 class="hero-title" id="detailTitle" style="font-size: 26px; margin-top: 14px;">Master Conversational Spanish</h1>
+              <div class="motivation-quote" id="detailWhyWrapper">
+                <span class="quote-icon">💡</span>
+                <p class="quote-text" id="detailWhy">"To connect deeply with locals, understand cultural nuances, and unlock new professional horizons."</p>
+              </div>
+              <div class="progress-bar-block">
+                <div class="progress-bar-labels">
+                  <span id="detailTargetDate">Target: Feb 2027</span>
+                  <span class="progress-percent" id="detailProgressPercent">68% Done</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="detailProgressFill" style="width: 68%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Routine Card -->
+            <div class="apple-card routine-card">
+              <div class="card-header-row">
+                <h3 class="card-title">Personal Routine</h3>
+                <span class="routine-pill" id="detailFrequency">4x / week</span>
+              </div>
+              <div class="routine-grid">
+                <div class="routine-tile">
+                  <span class="micro-caption">SCHEDULED DAYS</span>
+                  <p class="tile-val" id="detailRoutineDays">Mon, Tue, Thu, Sat</p>
+                </div>
+                <div class="routine-tile">
+                  <span class="micro-caption">TIME & DURATION</span>
+                  <p class="tile-val" id="detailRoutineTime">08:00 AM (30 min)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Consistency Rhythm Heatmap -->
+            <div class="apple-card consistency-card">
+              <div class="card-header-row">
+                <h3 class="card-title">Consistency Rhythm</h3>
+                <span class="section-counter">Last 4 Weeks</span>
+              </div>
+              <div class="heatmap-header">
+                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              </div>
+              <div class="heatmap-grid" id="heatmapGrid">
+                <!-- Injected via app.js -->
+              </div>
+              <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="legend-cell c0"></div>
+                <div class="legend-cell c1"></div>
+                <div class="legend-cell c2"></div>
+                <div class="legend-cell c3"></div>
+                <span>More</span>
+              </div>
+            </div>
+
+            <!-- Milestones Timeline -->
+            <div class="section-block">
+              <div class="section-header">
+                <h2 class="section-title">Milestones & Steps</h2>
+                <span class="section-counter" id="detailMilestonesAchieved">1/3 achieved</span>
+              </div>
+              <div class="milestones-container" id="milestonesContainer">
+                <!-- Injected via app.js -->
+              </div>
+              <div style="text-align: center; margin-top: 18px;">
+                <button class="pill-btn secondary" id="btnAddMilestoneModal">+ Add Milestone</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 3: WEEKLY REFLECTION & GROWTH -->
+        <section id="screenReflection" class="app-screen">
+          <div class="screen-scroll-content">
+            <!-- Header -->
+            <header class="app-header" style="align-items: flex-start;">
+              <div>
+                <span class="micro-caption" id="reflectionDateRange">OCT 08 – OCT 14</span>
+                <h1 class="hero-title">Reflection</h1>
+              </div>
+              <button class="pill-btn primary" id="btnAiReflect" style="padding: 6px 14px; font-size: 13px;">✨ AI Reflect</button>
+            </header>
+
+            <!-- AI Insight Banner -->
+            <div class="apple-card" id="aiInsightCard" style="display: none; background: rgba(0, 102, 204, 0.08); border-color: rgba(0, 102, 204, 0.2); padding: 14px;">
+              <div style="display: flex; gap: 8px;">
+                <span style="font-size: 18px;">✨</span>
+                <div>
+                  <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">AI Momentum Insight</div>
+                  <p id="aiInsightText" style="font-size: 12px; color: var(--ink); line-height: 1.35;"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scorecard -->
+            <div class="apple-card reflection-scorecard">
+              <div class="card-header-row">
+                <h3 class="card-title">Weekly Scorecard</h3>
+                <div class="momentum-chip">⚡ 88% Momentum</div>
+              </div>
+              <div class="metrics-row">
+                <div class="metric-tile">
+                  <span class="micro-caption">ACTIONS COMPLETED</span>
+                  <p class="tile-val" id="reflCompletedActions">16 of 18</p>
+                  <span class="tile-sub">88% consistency</span>
+                </div>
+                <div class="metric-tile">
+                  <span class="micro-caption">STRONGEST FOCUS</span>
+                  <p class="tile-val">Health & Fitness</p>
+                  <span class="tile-sub">Peak execution</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Focus Distribution -->
+            <div class="apple-card balance-card">
+              <h3 class="card-title">Focus Distribution</h3>
+              <div class="balance-bars" id="balanceBars">
+                <!-- Injected via app.js -->
+              </div>
+            </div>
+
+            <!-- Reflection Journal Prompts -->
+            <div class="section-block">
+              <h2 class="section-title" style="margin-bottom: 12px;">Weekly Reflection Log</h2>
+
+              <div class="apple-card prompt-card">
+                <div class="prompt-title">
+                  <span class="prompt-icon">✍️</span>
+                  <span>What went well this week?</span>
+                </div>
+                <textarea class="apple-textarea" id="txtWhatWentWell" rows="3" placeholder="e.g. Maintained morning Spanish practice without skipping..."></textarea>
+              </div>
+
+              <div class="apple-card prompt-card">
+                <div class="prompt-title">
+                  <span class="prompt-icon">⛈️</span>
+                  <span>What made things difficult?</span>
+                </div>
+                <textarea class="apple-textarea" id="txtWhatWasDifficult" rows="3" placeholder="e.g. Work deadlines made late evening coding sessions tough..."></textarea>
+              </div>
+
+              <div class="apple-card prompt-card">
+                <div class="prompt-title">
+                  <span class="prompt-icon">🎯</span>
+                  <span>What is your focus for next week?</span>
+                </div>
+                <textarea class="apple-textarea" id="txtNextWeekFocus" rows="3" placeholder="e.g. Shift SaaS coding to morning, start Spanish conversational sprint..."></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Frosted Bottom Navigation Bar -->
+      <nav class="frosted-bottom-nav">
+        <button class="nav-tab active" data-target="screenToday">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Today</span>
+        </button>
+        <button class="nav-tab" data-target="screenReflection">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span>Reflection</span>
+        </button>
+      </nav>
+
+      <!-- MODAL SHEET: CREATE GOAL -->
+      <div class="sheet-overlay" id="sheetOverlay"></div>
+      <div class="bottom-sheet" id="createGoalSheet">
+        <div class="sheet-handle"></div>
+        <h2 class="hero-title" style="font-size: 24px; margin-bottom: 4px;">Create New Goal</h2>
+        <p class="card-subtext" style="margin-bottom: 18px;">Set an inspiring direction and define your routine.</p>
+
+        <div class="form-group">
+          <label class="form-label">Goal Title</label>
+          <input type="text" id="inputGoalTitle" class="apple-input" placeholder="e.g. Master Conversational French">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Why This Matters</label>
+          <textarea id="inputWhy" class="apple-textarea" rows="2" placeholder="e.g. Connect deeply with locals and speak fluently during travel..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div class="chips-row" id="categoryChips">
+            <div class="chip active" data-cat="learning" data-emoji="📚">📚 Learning</div>
+            <div class="chip" data-cat="health" data-emoji="🏃‍♂️">🏃‍♂️ Health</div>
+            <div class="chip" data-cat="career" data-emoji="🚀">🚀 Career</div>
+            <div class="chip" data-cat="personal" data-emoji="🎯">🎯 Personal</div>
+            <div class="chip" data-cat="finance" data-emoji="💰">💰 Finance</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Target Timeframe</label>
+          <div class="chips-row" id="timeframeChips">
+            <div class="chip" data-months="3">3 Months</div>
+            <div class="chip active" data-months="6">6 Months</div>
+            <div class="chip" data-months="12">1 Year</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">First Milestone & Step</label>
+          <input type="text" id="inputMilestoneTitle" class="apple-input" placeholder="Stage 1: Core 300 words" style="margin-bottom: 8px;">
+          <input type="text" id="inputActionTitle" class="apple-input" placeholder="First Step: 20m listening session">
+        </div>
+
+        <button class="pill-btn primary" id="btnSubmitNewGoal" style="width: 100%; padding: 14px; margin-top: 12px;">Create Goal & Routine</button>
+      </div>
+
+      <!-- MODAL: ADD STEP -->
+      <div class="bottom-sheet" id="addStepSheet">
+        <div class="sheet-handle"></div>
+        <h2 class="hero-title" style="font-size: 22px; margin-bottom: 4px;">Add Action Step</h2>
+        <p class="card-subtext" style="margin-bottom: 16px;">Define a concrete action for this milestone.</p>
+        <input type="text" id="inputStepTitle" class="apple-input" placeholder="e.g. Practice 15 mins speaking" style="margin-bottom: 12px;">
+        <input type="number" id="inputStepDuration" class="apple-input" placeholder="Duration (min)" value="30" style="margin-bottom: 16px;">
+        <button class="pill-btn primary" id="btnSubmitAddStep" style="width: 100%; padding: 12px;">Add Step</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

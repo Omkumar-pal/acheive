@@ -1,0 +1,28 @@
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & DB
+.env
+.env.local
+*.db
+*.db-journal
+
+# IDE & OS
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.log

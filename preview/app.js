@@ -1,0 +1,606 @@
+// Achieve — App State & Controller
+let state = {
+  activeScreen: 'screenToday',
+  selectedGoalId: 'goal-1',
+  activeMilestoneForStep: null,
+  streak: 14,
+  goals: [
+    {
+      id: 'goal-1',
+      title: 'Master Conversational Spanish',
+      why: 'To connect deeply with locals, understand cultural nuances, and unlock new professional horizons.',
+      category: 'Learning',
+      emoji: '🇪🇸',
+      status: 'on-track',
+      statusText: '● On Track',
+      targetDate: 'Feb 2027',
+      routine: {
+        frequency: '4x / week',
+        days: 'Mon, Tue, Thu, Sat',
+        time: '08:00 AM (30 min)'
+      },
+      milestones: [
+        {
+          id: 'm1-1',
+          title: 'Foundational 500 Words & Core Grammar',
+          isCompleted: true,
+          actions: [
+            { id: 'act-1', title: 'Review 50 flashcards (Anki)', minutes: 20, time: '08:00 AM', completed: true },
+            { id: 'act-2', title: 'Complete Subjunctive Verb workbook', minutes: 30, time: '08:30 AM', completed: true }
+          ]
+        },
+        {
+          id: 'm1-2',
+          title: 'Conversational Fluency & Listening Sprint',
+          isCompleted: false,
+          actions: [
+            { id: 'act-3', title: '30m iTalki tutor conversation', minutes: 30, time: '08:00 AM', completed: true },
+            { id: 'act-4', title: 'Listen to Radio Ambulante podcast episode', minutes: 25, time: '06:00 PM', completed: false },
+            { id: 'act-5', title: 'Shadowing speech technique practice', minutes: 15, time: '09:00 PM', completed: false }
+          ]
+        },
+        {
+          id: 'm1-3',
+          title: 'Native Immersion & Novel Reading',
+          isCompleted: false,
+          actions: [
+            { id: 'act-6', title: 'Read chapter 1 & underline unknown idioms', minutes: 30, time: '08:00 PM', completed: false }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'goal-2',
+      title: 'Run First Sub-4-Hour Marathon',
+      why: 'Build peak cardiovascular fitness, mental resilience, and lifelong physical discipline.',
+      category: 'Health',
+      emoji: '🏃‍♂️',
+      status: 'ahead',
+      statusText: '● Ahead',
+      targetDate: 'Nov 2026',
+      routine: {
+        frequency: '4x / week',
+        days: 'Mon, Wed, Fri, Sun',
+        time: '06:30 AM (60 min)'
+      },
+      milestones: [
+        {
+          id: 'm2-1',
+          title: 'Base Aerobic Capacity (15km Long Runs)',
+          isCompleted: true,
+          actions: [
+            { id: 'act-7', title: '15km Sunday endurance run', minutes: 85, time: '06:30 AM', completed: true }
+          ]
+        },
+        {
+          id: 'm2-2',
+          title: 'Speed-Endurance & Tempo Building',
+          isCompleted: false,
+          actions: [
+            { id: 'act-8', title: '8km Tempo Pace (5:30/km)', minutes: 45, time: '06:30 AM', completed: true },
+            { id: 'act-9', title: 'Leg strengthening & mobility drills', minutes: 20, time: '07:30 PM', completed: false }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'goal-3',
+      title: 'Launch Indie SaaS Product',
+      why: 'Achieve financial autonomy and create enduring value for real human problems.',
+      category: 'Career',
+      emoji: '🚀',
+      status: 'on-track',
+      statusText: '● On Track',
+      targetDate: 'Dec 2026',
+      routine: {
+        frequency: '3x / week',
+        days: 'Tue, Thu, Sat',
+        time: '07:00 PM (90 min)'
+      },
+      milestones: [
+        {
+          id: 'm3-1',
+          title: 'User Problem Validation & Prototype',
+          isCompleted: true,
+          actions: [
+            { id: 'act-10', title: '5 customer discovery calls', minutes: 60, time: '05:00 PM', completed: true }
+          ]
+        },
+        {
+          id: 'm3-2',
+          title: 'Core MVP Architecture & Payment Gateway',
+          isCompleted: false,
+          actions: [
+            { id: 'act-11', title: 'Build Stripe webhook handler', minutes: 60, time: '07:00 PM', completed: false }
+          ]
+        }
+      ]
+    }
+  ],
+  reflection: {
+    whatWentWell: 'Completed all marathon tempo runs on schedule and maintained morning Spanish practice without skipping.',
+    whatWasDifficult: 'Midweek fatigue made late evening SaaS coding sessions harder to focus on.',
+    nextWeekFocus: 'Shift SaaS deep work to early Saturday morning and complete Stripe checkout flow.'
+  }
+};
+
+// Generate 28-day consistency history
+function generateHeatmapData() {
+  const days = [];
+  for (let i = 27; i >= 0; i--) {
+    let level = 0;
+    if (i % 7 === 3 || i % 7 === 5) {
+      level = 1;
+    } else if (i % 4 === 0) {
+      level = 3;
+    } else {
+      level = 2;
+    }
+    days.push(level);
+  }
+  return days;
+}
+
+// Compute metrics
+function getTodayActions() {
+  const actions = [];
+  state.goals.forEach(goal => {
+    goal.milestones.forEach(milestone => {
+      milestone.actions.forEach(action => {
+        actions.push({
+          ...action,
+          goalId: goal.id,
+          goalTitle: goal.title,
+          goalEmoji: goal.emoji,
+          milestoneId: milestone.id
+        });
+      });
+    });
+  });
+  return actions;
+}
+
+function getGoalProgress(goal) {
+  let total = 0;
+  let completed = 0;
+  goal.milestones.forEach(m => {
+    m.actions.forEach(a => {
+      total++;
+      if (a.completed) completed++;
+    });
+  });
+  return total === 0 ? 0 : Math.round((completed / total) * 100);
+}
+
+// Render Dashboard
+function renderDashboard() {
+  const allActions = getTodayActions();
+  // Filter for today's subset (first 4)
+  const todayActions = allActions.slice(0, 4);
+  const completedToday = todayActions.filter(a => a.completed).length;
+  const totalToday = todayActions.length;
+  const pct = totalToday === 0 ? 0 : Math.round((completedToday / totalToday) * 100);
+
+  // Update ring
+  const circleCircumference = 238.76;
+  const offset = circleCircumference - (pct / 100) * circleCircumference;
+  const ringFg = document.getElementById('dailyRingFg');
+  if (ringFg) ringFg.style.strokeDashoffset = offset;
+  
+  document.getElementById('dailyPercent').textContent = `${pct}%`;
+  document.getElementById('dailyFraction').textContent = `${completedToday}/${totalToday} Done`;
+  document.getElementById('todayCompletedFraction').textContent = `${completedToday}/${totalToday} completed`;
+  document.getElementById('activeGoalsCount').textContent = `${state.goals.length} in progress`;
+  document.getElementById('streakCount').textContent = `${state.streak} Day Streak`;
+
+  // Render Active Goals Carousel
+  const carousel = document.getElementById('goalsCarousel');
+  carousel.innerHTML = state.goals.map(goal => {
+    const progress = getGoalProgress(goal);
+    let totalActions = 0;
+    let completedActions = 0;
+    goal.milestones.forEach(m => {
+      m.actions.forEach(a => {
+        totalActions++;
+        if (a.completed) completedActions++;
+      });
+    });
+
+    return `
+      <div class="goal-card-carousel" data-goal-id="${goal.id}">
+        <div class="goal-card-top">
+          <div class="goal-emoji-icon">${goal.emoji}</div>
+          <div class="status-badge ${goal.status}">${goal.statusText}</div>
+        </div>
+        <div class="goal-card-title">${goal.title}</div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 5px;">
+            <span>${completedActions}/${totalActions} actions</span>
+            <span style="font-weight: 600; color: var(--primary);">${progress}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: ${progress}%;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Render Today Actions
+  const actionsList = document.getElementById('todayActionsList');
+  actionsList.innerHTML = todayActions.map(action => `
+    <div class="action-card ${action.completed ? 'completed' : ''}" data-goal-id="${action.goalId}" data-milestone-id="${action.milestoneId}" data-action-id="${action.id}">
+      <div class="checkbox-circle"></div>
+      <div class="action-details">
+        <div class="action-title">${action.title}</div>
+        <div class="action-meta">
+          <span>${action.goalEmoji}</span>
+          <span>${action.goalTitle}</span>
+          <span>•</span>
+          <span>${action.minutes}m</span>
+        </div>
+      </div>
+      <div class="time-pill">${action.time}</div>
+    </div>
+  `).join('');
+
+  // Add click events to carousel items
+  carousel.querySelectorAll('.goal-card-carousel').forEach(card => {
+    card.addEventListener('click', () => {
+      const goalId = card.getAttribute('data-goal-id');
+      openGoalDetail(goalId);
+    });
+  });
+
+  // Add click events to action items
+  actionsList.querySelectorAll('.action-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const goalId = card.getAttribute('data-goal-id');
+      const mId = card.getAttribute('data-milestone-id');
+      const aId = card.getAttribute('data-action-id');
+      toggleAction(goalId, mId, aId);
+    });
+  });
+}
+
+// Render Goal Detail
+function renderGoalDetail(goalId) {
+  const goal = state.goals.find(g => g.id === goalId);
+  if (!goal) return;
+
+  state.selectedGoalId = goalId;
+  const progress = getGoalProgress(goal);
+
+  document.getElementById('detailCategory').textContent = goal.category.toUpperCase();
+  document.getElementById('detailEmoji').textContent = goal.emoji;
+  document.getElementById('detailTitle').textContent = goal.title;
+  document.getElementById('detailWhy').textContent = `"${goal.why}"`;
+  document.getElementById('detailTargetDate').textContent = `Target: ${goal.targetDate}`;
+  document.getElementById('detailProgressPercent').textContent = `${progress}% Done`;
+  document.getElementById('detailProgressFill').style.width = `${progress}%`;
+  
+  const statusBadge = document.getElementById('detailStatusBadge');
+  statusBadge.className = `status-badge ${goal.status}`;
+  statusBadge.textContent = goal.statusText;
+
+  document.getElementById('detailFrequency').textContent = goal.routine.frequency;
+  document.getElementById('detailRoutineDays').textContent = goal.routine.days;
+  document.getElementById('detailRoutineTime').textContent = goal.routine.time;
+
+  // Heatmap
+  const heatmapData = generateHeatmapData();
+  const heatmapGrid = document.getElementById('heatmapGrid');
+  heatmapGrid.innerHTML = heatmapData.map(val => `<div class="heatmap-cell c${val}">${val > 0 ? val : ''}</div>`).join('');
+
+  // Milestones
+  const milestonesContainer = document.getElementById('milestonesContainer');
+  const achievedCount = goal.milestones.filter(m => m.isCompleted).length;
+  document.getElementById('detailMilestonesAchieved').textContent = `${achievedCount}/${goal.milestones.length} achieved`;
+
+  milestonesContainer.innerHTML = goal.milestones.map((m, idx) => {
+    let mTotal = m.actions.length;
+    let mDone = m.actions.filter(a => a.completed).length;
+    let mPct = mTotal === 0 ? (m.isCompleted ? 100 : 0) : Math.round((mDone / mTotal) * 100);
+
+    return `
+      <div class="milestone-card">
+        <div class="milestone-header">
+          <div class="milestone-num ${m.isCompleted ? 'achieved' : ''}">
+            ${m.isCompleted ? '✓' : idx + 1}
+          </div>
+          <div style="flex: 1;">
+            <div class="milestone-title">${m.title}</div>
+          </div>
+          <span style="font-size: 13px; font-weight: 600; color: ${m.isCompleted ? 'var(--status-on-track)' : 'var(--primary)'}">${mPct}%</span>
+        </div>
+        <div class="progress-track" style="margin-bottom: 10px;">
+          <div class="progress-fill" style="width: ${mPct}%; background: ${m.isCompleted ? 'var(--status-on-track)' : 'var(--primary)'}"></div>
+        </div>
+        <div class="milestone-steps">
+          ${m.actions.map(act => `
+            <div class="milestone-step-item ${act.completed ? 'completed' : ''}" data-goal-id="${goal.id}" data-milestone-id="${m.id}" data-action-id="${act.id}">
+              <div class="checkbox-circle" style="width: 18px; height: 18px;"></div>
+              <span class="milestone-step-name">${act.title}</span>
+              <span style="font-size: 11px; color: var(--text-muted);">${act.minutes}m</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top: 10px;">
+          <button class="pill-btn secondary btn-add-step-inline" data-milestone-id="${m.id}" style="font-size: 12px; padding: 4px 10px;">+ Step</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Add click listener for milestone steps
+  milestonesContainer.querySelectorAll('.milestone-step-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const gId = item.getAttribute('data-goal-id');
+      const mId = item.getAttribute('data-milestone-id');
+      const aId = item.getAttribute('data-action-id');
+      toggleAction(gId, mId, aId);
+      renderGoalDetail(goalId);
+    });
+  });
+
+  // Add click listener for "+ Step" buttons
+  milestonesContainer.querySelectorAll('.btn-add-step-inline').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mId = btn.getAttribute('data-milestone-id');
+      openAddStepModal(mId);
+    });
+  });
+}
+
+// Render Reflection Screen
+function renderReflection() {
+  const txtWell = document.getElementById('txtWhatWentWell');
+  const txtDiff = document.getElementById('txtWhatWasDifficult');
+  const txtFocus = document.getElementById('txtNextWeekFocus');
+
+  txtWell.value = state.reflection.whatWentWell;
+  txtDiff.value = state.reflection.whatWasDifficult;
+  txtFocus.value = state.reflection.nextWeekFocus;
+
+  // Category distribution
+  const catMap = {};
+  state.goals.forEach(g => {
+    catMap[g.category] = (catMap[g.category] || 0);
+    g.milestones.forEach(m => {
+      m.actions.forEach(a => {
+        if (a.completed) catMap[g.category]++;
+      });
+    });
+  });
+
+  const totalCompleted = Object.values(catMap).reduce((a, b) => a + b, 0);
+  const balanceBars = document.getElementById('balanceBars');
+
+  balanceBars.innerHTML = Object.entries(catMap).map(([cat, count]) => {
+    const pct = totalCompleted === 0 ? 0 : Math.round((count / totalCompleted) * 100);
+    return `
+      <div class="balance-row">
+        <div class="balance-labels">
+          <span>${cat}</span>
+          <span style="color: var(--text-muted); font-size: 12px;">${pct}% (${count} acts)</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: ${pct}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Action Toggling
+function toggleAction(goalId, milestoneId, actionId) {
+  const goal = state.goals.find(g => g.id === goalId);
+  if (!goal) return;
+  const milestone = goal.milestones.find(m => m.id === milestoneId);
+  if (!milestone) return;
+  const action = milestone.actions.find(a => a.id === actionId);
+  if (!action) return;
+
+  action.completed = !action.completed;
+
+  // Check if milestone completed
+  const allDone = milestone.actions.length > 0 && milestone.actions.every(a => a.completed);
+  milestone.isCompleted = allDone;
+
+  renderDashboard();
+  if (state.activeScreen === 'screenGoalDetail') {
+    renderGoalDetail(goalId);
+  }
+}
+
+// Navigation & Screen Switcher
+function switchScreen(screenId) {
+  document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active-screen'));
+  const target = document.getElementById(screenId);
+  if (target) target.classList.add('active-screen');
+  state.activeScreen = screenId;
+
+  // Update tabs
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('data-target') === screenId);
+  });
+}
+
+function openGoalDetail(goalId) {
+  renderGoalDetail(goalId);
+  switchScreen('screenGoalDetail');
+}
+
+// Sheet Modals
+function openCreateGoalSheet() {
+  document.getElementById('sheetOverlay').classList.add('active');
+  document.getElementById('createGoalSheet').classList.add('active');
+}
+
+function closeSheets() {
+  document.getElementById('sheetOverlay').classList.remove('active');
+  document.getElementById('createGoalSheet').classList.remove('active');
+  document.getElementById('addStepSheet').classList.remove('active');
+}
+
+function openAddStepModal(milestoneId) {
+  state.activeMilestoneForStep = milestoneId;
+  document.getElementById('sheetOverlay').classList.add('active');
+  document.getElementById('addStepSheet').classList.add('active');
+}
+
+// Event Listeners Initializer
+document.addEventListener('DOMContentLoaded', () => {
+  // Navigation tabs
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetScreen = tab.getAttribute('data-target');
+      switchScreen(targetScreen);
+      if (targetScreen === 'screenReflection') renderReflection();
+      if (targetScreen === 'screenToday') renderDashboard();
+    });
+  });
+
+  // Back button
+  document.getElementById('btnBackToDashboard').addEventListener('click', () => {
+    switchScreen('screenToday');
+    renderDashboard();
+  });
+
+  // Open Create Goal
+  document.getElementById('btnOpenCreateGoal').addEventListener('click', openCreateGoalSheet);
+  document.getElementById('sheetOverlay').addEventListener('click', closeSheets);
+
+  // Category choice chips in modal
+  document.querySelectorAll('#categoryChips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#categoryChips .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // Timeframe choice chips
+  document.querySelectorAll('#timeframeChips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#timeframeChips .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // Submit New Goal
+  document.getElementById('btnSubmitNewGoal').addEventListener('click', () => {
+    const title = document.getElementById('inputGoalTitle').value.trim();
+    const why = document.getElementById('inputWhy').value.trim();
+    if (!title) return;
+
+    const activeCat = document.querySelector('#categoryChips .chip.active');
+    const category = activeCat ? activeCat.getAttribute('data-cat') : 'personal';
+    const emoji = activeCat ? activeCat.getAttribute('data-emoji') : '🎯';
+    const mTitle = document.getElementById('inputMilestoneTitle').value.trim() || 'Foundational Milestone 1';
+    const aTitle = document.getElementById('inputActionTitle').value.trim() || 'First actionable step';
+
+    const newGoal = {
+      id: `goal-${Date.now()}`,
+      title,
+      why: why || 'Make meaningful progress everyday.',
+      category: category.charAt(0).toUpperCase() + category.slice(1),
+      emoji,
+      status: 'on-track',
+      statusText: '● On Track',
+      targetDate: '6 Months',
+      routine: {
+        frequency: '3x / week',
+        days: 'Mon, Wed, Fri',
+        time: '08:00 AM (45 min)'
+      },
+      milestones: [
+        {
+          id: `m-${Date.now()}`,
+          title: mTitle,
+          isCompleted: false,
+          actions: [
+            { id: `act-${Date.now()}`, title: aTitle, minutes: 30, time: '08:00 AM', completed: false }
+          ]
+        }
+      ]
+    };
+
+    state.goals.unshift(newGoal);
+    closeSheets();
+    renderDashboard();
+  });
+
+  // Submit Add Step
+  document.getElementById('btnSubmitAddStep').addEventListener('click', () => {
+    const stepTitle = document.getElementById('inputStepTitle').value.trim();
+    const stepDuration = parseInt(document.getElementById('inputStepDuration').value, 10) || 30;
+    if (!stepTitle || !state.activeMilestoneForStep) return;
+
+    const goal = state.goals.find(g => g.id === state.selectedGoalId);
+    if (goal) {
+      const milestone = goal.milestones.find(m => m.id === state.activeMilestoneForStep);
+      if (milestone) {
+        milestone.actions.push({
+          id: `act-${Date.now()}`,
+          title: stepTitle,
+          minutes: stepDuration,
+          time: '08:00 AM',
+          completed: false
+        });
+      }
+    }
+
+    closeSheets();
+    renderGoalDetail(state.selectedGoalId);
+  });
+
+  // AI Reflection button
+  const btnAiReflect = document.getElementById('btnAiReflect');
+  if (btnAiReflect) {
+    btnAiReflect.addEventListener('click', () => {
+      btnAiReflect.textContent = 'Synthesizing...';
+      btnAiReflect.disabled = true;
+
+      setTimeout(() => {
+        state.reflection.whatWentWell = 'Maintained high consistency with 16 actions logged. Key momentum was built on Master Conversational Spanish and Marathon Tempo Runs with peak execution in Health & Learning.';
+        state.reflection.whatWasDifficult = 'Midweek fatigue made late evening SaaS deep work harder to start, causing slight friction in scheduled routines.';
+        state.reflection.nextWeekFocus = 'Shift SaaS development to early Saturday morning, start Spanish conversational fluency sprint with tutor, and maintain tempo pace.';
+
+        document.getElementById('txtWhatWentWell').value = state.reflection.whatWentWell;
+        document.getElementById('txtWhatWasDifficult').value = state.reflection.whatWasDifficult;
+        document.getElementById('txtNextWeekFocus').value = state.reflection.nextWeekFocus;
+
+        const insightCard = document.getElementById('aiInsightCard');
+        const insightText = document.getElementById('aiInsightText');
+        if (insightCard && insightText) {
+          insightCard.style.display = 'block';
+          insightText.textContent = 'Your execution momentum is in the top tier (88% consistency). Prioritize conversational milestone depth over raw card volume next week.';
+        }
+
+        btnAiReflect.textContent = '✨ AI Reflect';
+        btnAiReflect.disabled = false;
+      }, 700);
+    });
+  }
+
+  // Reflection auto-save
+  const triggerAutoSave = () => {
+    state.reflection.whatWentWell = document.getElementById('txtWhatWentWell').value;
+    state.reflection.whatWasDifficult = document.getElementById('txtWhatWasDifficult').value;
+    state.reflection.nextWeekFocus = document.getElementById('txtNextWeekFocus').value;
+    
+    const indicator = document.getElementById('savedIndicator');
+    indicator.textContent = 'Saving...';
+    setTimeout(() => {
+      indicator.textContent = 'Auto-saved';
+    }, 400);
+  };
+
+  document.getElementById('txtWhatWentWell').addEventListener('input', triggerAutoSave);
+  document.getElementById('txtWhatWasDifficult').addEventListener('input', triggerAutoSave);
+  document.getElementById('txtNextWeekFocus').addEventListener('input', triggerAutoSave);
+
+  // Initial render
+  renderDashboard();
+});

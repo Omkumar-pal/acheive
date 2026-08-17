@@ -1,0 +1,101 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  goals        Goal[]
+  reflections  WeeklyReflection[]
+  consistency  ConsistencyDay[]
+}
+
+model Goal {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  whyItMatters String?
+  category     String      @default("personal")
+  status       String      @default("active")
+  iconEmoji    String      @default("🎯")
+  startDate    DateTime    @default(now())
+  targetDate   DateTime
+  routine      Routine?
+  milestones   Milestone[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Routine {
+  id                     String  @id @default(uuid())
+  goalId                 String  @unique
+  goal                   Goal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  frequency              String  @default("customDays")
+  preferredDays          String  // JSON string e.g. "[1,3,5]"
+  preferredTime          String  @default("08:00 AM")
+  targetDurationMinutes  Int     @default(45)
+  targetSessionsPerWeek  Int     @default(3)
+}
+
+model Milestone {
+  id          String       @id @default(uuid())
+  goalId      String
+  goal        Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  order       Int
+  isCompleted Boolean      @default(false)
+  actions     ActionItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model ActionItem {
+  id               String    @id @default(uuid())
+  milestoneId      String
+  milestone        Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  title            String
+  estimatedMinutes Int       @default(30)
+  preferredTime    String    @default("08:00 AM")
+  priority         String    @default("medium")
+  status           String    @default("upcoming")
+  dueDate          DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model ConsistencyDay {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date             DateTime
+  completedActions Int      @default(0)
+  plannedActions   Int      @default(0)
+  totalMinutes     Int      @default(0)
+}
+
+model WeeklyReflection {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStartDate    DateTime
+  weekEndDate      DateTime
+  whatWentWell     String?
+  whatWasDifficult String?
+  nextWeekFocus    String?
+  consistencyScore Float    @default(0.0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
