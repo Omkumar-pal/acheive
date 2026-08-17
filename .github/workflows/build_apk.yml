@@ -29,11 +29,12 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Ensure Android Platform Configuration
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Ensure Gradle 8.7 Wrapper
         run: |
-          flutter create --platforms=android --org com.achieve.app .
-          flutter clean
-          flutter pub get
+          sed -i -E 's/gradle-[0-9.]+-all.zip/gradle-8.7-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties || true
 
       - name: Run Unit Tests
         run: |
