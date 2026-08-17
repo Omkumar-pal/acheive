@@ -1,10 +1,5 @@
 // Achieve — App State & Controller
-let state = {
-  activeScreen: 'screenToday',
-  selectedGoalId: 'goal-1',
-  activeMilestoneForStep: null,
-  streak: 14,
-  goals: [
+const SAMPLE_GOALS = [
     {
       id: 'goal-1',
       title: 'Master Conversational Spanish',
@@ -69,29 +64,29 @@ let state = {
           title: 'Base Aerobic Capacity (15km Long Runs)',
           isCompleted: true,
           actions: [
-            { id: 'act-7', title: '15km Sunday endurance run', minutes: 85, time: '06:30 AM', completed: true }
+            { id: 'act-7', title: '15km Sunday endurance run', minutes: 85, time: '06:30 AM', completed: true },
+            { id: 'act-8', title: 'Interval 800m repeats (x6)', minutes: 45, time: '07:00 AM', completed: true }
           ]
         },
         {
           id: 'm2-2',
-          title: 'Speed-Endurance & Tempo Building',
+          title: 'Lactate Threshold & Sustained Tempo (25km)',
           isCompleted: false,
           actions: [
-            { id: 'act-8', title: '8km Tempo Pace (5:30/km)', minutes: 45, time: '06:30 AM', completed: true },
-            { id: 'act-9', title: 'Leg strengthening & mobility drills', minutes: 20, time: '07:30 PM', completed: false }
+            { id: 'act-9', title: '12km Tempo at 5:35 min/km', minutes: 65, time: '06:30 AM', completed: false }
           ]
         }
       ]
     },
     {
       id: 'goal-3',
-      title: 'Launch Indie SaaS Product',
-      why: 'Achieve financial autonomy and create enduring value for real human problems.',
+      title: 'Launch SaaS Product to $5K MRR',
+      why: 'Achieve location independence, craft beloved consumer software, and achieve financial autonomy.',
       category: 'Career',
       emoji: '🚀',
-      status: 'on-track',
-      statusText: '● On Track',
-      targetDate: 'Dec 2026',
+      status: 'needs-attention',
+      statusText: '● Needs Attention',
+      targetDate: 'Jan 2027',
       routine: {
         frequency: '3x / week',
         days: 'Tue, Thu, Sat',
@@ -116,7 +111,15 @@ let state = {
         }
       ]
     }
-  ],
+];
+
+let state = {
+  currentUser: { name: 'Alex Rivera', email: 'alex@achieve.app', isDemo: true },
+  activeScreen: 'screenToday',
+  selectedGoalId: 'goal-1',
+  activeMilestoneForStep: null,
+  streak: 14,
+  goals: JSON.parse(JSON.stringify(SAMPLE_GOALS)),
   reflection: {
     whatWentWell: 'Completed all marathon tempo runs on schedule and maintained morning Spanish practice without skipping.',
     whatWasDifficult: 'Midweek fatigue made late evening SaaS coding sessions harder to focus on.',
@@ -537,15 +540,86 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnOpenCreateGoal').addEventListener('click', openCreateGoalSheet);
   const btnOpenProfile = document.getElementById('btnOpenProfile');
   if (btnOpenProfile) btnOpenProfile.addEventListener('click', openProfileSheet);
-  
+
+  // Auth Screen logic & Logout
+  let authMode = 'login';
+  const tabAuthLogin = document.getElementById('tabAuthLogin');
+  const tabAuthRegister = document.getElementById('tabAuthRegister');
+  const groupAuthName = document.getElementById('groupAuthName');
+  const btnSubmitAuth = document.getElementById('btnSubmitAuth');
+
+  if (tabAuthLogin && tabAuthRegister) {
+    tabAuthLogin.addEventListener('click', () => {
+      authMode = 'login';
+      tabAuthLogin.className = 'pill-btn primary';
+      tabAuthLogin.style.border = 'none';
+      tabAuthRegister.className = 'pill-btn secondary';
+      tabAuthRegister.style.border = 'none';
+      if (groupAuthName) groupAuthName.style.display = 'none';
+      if (btnSubmitAuth) btnSubmitAuth.textContent = 'Sign In';
+    });
+
+    tabAuthRegister.addEventListener('click', () => {
+      authMode = 'register';
+      tabAuthRegister.className = 'pill-btn primary';
+      tabAuthRegister.style.border = 'none';
+      tabAuthLogin.className = 'pill-btn secondary';
+      tabAuthLogin.style.border = 'none';
+      if (groupAuthName) groupAuthName.style.display = 'block';
+      if (btnSubmitAuth) btnSubmitAuth.textContent = 'Create Account';
+    });
+  }
+
+  function loginUser(name, email, isDemo) {
+    state.currentUser = { name, email, isDemo };
+    if (isDemo) {
+      state.goals = JSON.parse(JSON.stringify(SAMPLE_GOALS));
+      state.streak = 14;
+    } else {
+      state.goals = [];
+      state.streak = 0;
+    }
+    const nav = document.querySelector('.app-bottom-nav');
+    if (nav) nav.style.display = 'flex';
+    switchScreen('screenToday');
+    renderDashboard();
+  }
+
+  function logoutUser() {
+    state.currentUser = null;
+    closeSheets();
+    const nav = document.querySelector('.app-bottom-nav');
+    if (nav) nav.style.display = 'none';
+    switchScreen('screenAuth');
+  }
+
+  if (btnSubmitAuth) {
+    btnSubmitAuth.addEventListener('click', () => {
+      const email = document.getElementById('inputAuthEmail').value.trim() || 'user@achieve.app';
+      const name = document.getElementById('inputAuthName')?.value.trim() || email.split('@')[0];
+      const isDemo = email.toLowerCase().includes('alex') || email.toLowerCase().includes('demo');
+      loginUser(name, email, isDemo);
+    });
+  }
+
+  const btnAuthQuickDemo = document.getElementById('btnAuthQuickDemo');
+  if (btnAuthQuickDemo) {
+    btnAuthQuickDemo.addEventListener('click', () => {
+      loginUser('Alex Rivera', 'alex@achieve.app', true);
+    });
+  }
+
+  const btnAuthQuickGuest = document.getElementById('btnAuthQuickGuest');
+  if (btnAuthQuickGuest) {
+    btnAuthQuickGuest.addEventListener('click', () => {
+      loginUser('Guest User', 'guest@achieve.app', false);
+    });
+  }
+
   const btnLogoutUser = document.getElementById('btnLogoutUser');
   if (btnLogoutUser) {
     btnLogoutUser.addEventListener('click', () => {
-      alert('Logged out successfully! Starting fresh.');
-      state.goals = [];
-      state.streak = 0;
-      closeSheets();
-      renderDashboard();
+      logoutUser();
     });
   }
   document.getElementById('sheetOverlay').addEventListener('click', closeSheets);
